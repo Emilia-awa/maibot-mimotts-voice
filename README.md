@@ -130,7 +130,7 @@ maibot-mimotts-voice/
 
 ## 注意事项
 
-1. **API Key**：需要在 [小米 MiMo 平台](https://xiaomimimo.com) 申请
+1. **API Key**：需要在 [小米 MiMo 平台](platform.xiaomimimo.com) 申请
 2. **音色复刻**：建议录音时长不低于 30 秒，确保无背景噪音
 3. **Base64 大小**：音色参考音频的 Base64 编码不能超过 10MB
 4. **费用**：MiMo-V2.5-TTS 系列当前限时免费
