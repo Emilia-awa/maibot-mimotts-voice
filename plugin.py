@@ -1,7 +1,7 @@
 """AI Voice Service Plugin for MaiBot."""
 
+import asyncio
 import base64
-import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
@@ -61,7 +61,9 @@ class AIVoicePlugin(MaiBotPlugin):
             self.config.voice.voice_mode, self.default_voice, list(self.voices.keys()))
 
     async def on_unload(self) -> None:
-        self.tts_service = None
+        if self.tts_service:
+            await self.tts_service.close()
+            self.tts_service = None
         self.voices.clear()
 
     async def on_config_update(self, scope: str, config_data: dict[str, object], version: str) -> None:
@@ -73,7 +75,6 @@ class AIVoicePlugin(MaiBotPlugin):
             self.default_voice = self.config.voice.default_voice or self.config.voice.clone_voice
             await self._load_voices()
             self.ctx.logger.info("Config reloaded: mode=%s, default_voice=%s", self.config.voice.voice_mode, self.default_voice)
-        del config_data
 
     async def _load_voices(self) -> None:
         voices_dir_str = self.config.voice.voices_dir
@@ -264,7 +265,6 @@ class AIVoicePlugin(MaiBotPlugin):
         self.ctx.logger.info("Using stream_id=%s for voice reply, text_len=%d", stream_id, len(reply_text))
 
         # Always use the configured default voice
-        import asyncio
         asyncio.create_task(self._async_voice_reply(reply_text, style_instruction, stream_id, ""))
         return {"success": True, "method": "voice", "error": ""}
 
