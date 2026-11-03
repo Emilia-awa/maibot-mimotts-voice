@@ -171,7 +171,7 @@ class AIVoicePlugin(MaiBotPlugin):
         except Exception as e:
             self.ctx.logger.warning("voice send failed: %s", e)
 
-        self.ctx.logger.error("All voice send methods failed")
+        self.ctx.logger.error("Voice send failed: stream_id=%s", stream_id)
         return False
 
     def _resolve_voice(self, voice_name: str) -> tuple[str, str, str]:
@@ -250,7 +250,11 @@ class AIVoicePlugin(MaiBotPlugin):
                 # 立即从 result 中移除大字段，避免双重内存占用
                 result.pop("audio_base64", None)
 
-                await self._send_voice(audio_b64, stream_id)
+                sent = await self._send_voice(audio_b64, stream_id)
+                result["sent"] = sent
+                if not sent:
+                    result["error"] = result.get("error") or "Voice send failed"
+                    self.ctx.logger.warning("Voice reply failed to send: stream_id=%s", stream_id)
                 audio_b64 = ""
             elif audio_b64:
                 # 不需要发送时也清理

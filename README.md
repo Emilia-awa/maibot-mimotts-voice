@@ -151,6 +151,7 @@ maibot-mimotts-voice/
 ├── config.toml         # 插件配置（gitignored）
 ├── config.example.toml # 配置示例
 ├── _manifest.json      # 插件清单
+├── tests/              # 单元测试（pytest）
 ├── README.md           # 本文档
 ├── LICENSE             # MIT 许可证
 ├── .gitignore          # Git 忽略规则
@@ -159,6 +160,14 @@ maibot-mimotts-voice/
 ```
 
 ## 更新日志
+
+### v1.7.0
+
+- 🎙️ **语音发送修复**：`send.custom` 改为传递纯 base64 字符串，修复 SnowLuma / NapCat 适配器下
+  `出站消息没有可转换的 OneBot 消息段` 与 `Failed to open input` 报错
+- 🧩 **base64 补位修正**：先剥离 `data:` 前缀再对正文补位，修复部分长度下 `Incorrect padding`
+- 📢 **发送结果可见**：语音发送失败不再静默，`voice_clone_tts` 返回 `sent` 字段并写 warning 日志
+- 📋 **清单更正**：移除不存在的 `send.record` 能力声明与未使用的能力项
 
 ### v1.6.0
 

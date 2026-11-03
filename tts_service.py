@@ -1,10 +1,28 @@
 """MiMo TTS Service Module - 支持预置音色和音色复刻"""
 
+import base64
 import gc
 import logging
 from typing import Any, Optional
 
 import aiohttp
+
+
+def _normalize_audio_base64(value: str) -> str:
+    """归一化音频 base64：剥离 data: 前缀、删除空白、补齐 padding。
+
+    返回纯 base64 字符串，幂等；空输入返回空字符串。
+    """
+    if not value:
+        return ""
+
+    body = value.rsplit("base64,", 1)[-1] if "base64," in value else value
+    body = "".join(body.split())
+    if not body:
+        return ""
+
+    core = body.rstrip("=")
+    return core + "=" * ((-len(core)) % 4)
 
 
 class MiMoTTSService:
@@ -148,11 +166,13 @@ class MiMoTTSService:
                 if not audio_data:
                     return {"success": False, "error": "No audio data"}
 
-                audio_base64 = audio_data.get("data", "").strip()
+                audio_base64 = _normalize_audio_base64(audio_data.get("data", ""))
                 if not audio_base64:
                     return {"success": False, "error": "Empty audio"}
-                # Fix base64 padding if API returns unpadded data
-                audio_base64 += "=" * (-len(audio_base64) % 4)
+                try:
+                    base64.b64decode(audio_base64)
+                except Exception:
+                    return {"success": False, "error": "Invalid audio base64"}
 
                 text_content = payload["messages"][-1]["content"]
                 del result, choices, message, audio_data
