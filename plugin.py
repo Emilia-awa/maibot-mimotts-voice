@@ -158,30 +158,18 @@ class AIVoicePlugin(MaiBotPlugin):
         return ""
 
     async def _send_voice(self, audio_b64: str, stream_id: str) -> bool:
-        """Send voice message using base64 format.
-        注意: 调用后 audio_b64 会被消费，不再可用。
+        """Send voice message using raw base64 (same approach as ling-tts-bot).
+
+        send.custom("voice", raw_base64_string, stream_id) — not a dict with file path.
         """
         self.ctx.logger.info("Sending voice to stream=%s, b64_len=%d", stream_id, len(audio_b64))
 
-        b64_url = f"base64://{audio_b64}"
-        # 原始引用可以释放（如果调用方已 del 则无额外效果，但作为安全措施）
-        audio_b64 = ""
-
-        # Method 1: record type with base64 (NapCat standard for voice)
         try:
-            await self.ctx.send.custom("record", {"file": b64_url}, stream_id)
-            self.ctx.logger.info("Sent via record+base64")
-            return True
+            sent = await self.ctx.send.custom("voice", audio_b64, stream_id)
+            self.ctx.logger.info("Sent via voice+base64, result=%s", sent)
+            return bool(sent)
         except Exception as e:
-            self.ctx.logger.warning("record+base64 failed: %s", e)
-
-        # Method 2: voice type with base64
-        try:
-            await self.ctx.send.custom("voice", {"file": b64_url}, stream_id)
-            self.ctx.logger.info("Sent via voice+base64")
-            return True
-        except Exception as e:
-            self.ctx.logger.warning("voice+base64 failed: %s", e)
+            self.ctx.logger.warning("voice send failed: %s", e)
 
         self.ctx.logger.error("All voice send methods failed")
         return False

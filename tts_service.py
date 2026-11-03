@@ -148,9 +148,11 @@ class MiMoTTSService:
                 if not audio_data:
                     return {"success": False, "error": "No audio data"}
 
-                audio_base64 = audio_data.get("data", "")
+                audio_base64 = audio_data.get("data", "").strip()
                 if not audio_base64:
                     return {"success": False, "error": "Empty audio"}
+                # Fix base64 padding if API returns unpadded data
+                audio_base64 += "=" * (-len(audio_base64) % 4)
 
                 text_content = payload["messages"][-1]["content"]
                 del result, choices, message, audio_data
